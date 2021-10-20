@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Dserver.port=$PORT -jar ./bookworm-backend/target/bookworm-backend-1.0-SNAPSHOT.jar -Dspring.profiles.active=prod
+web: java -Dserver.port=$PORT $JAVA_OPTS -jar ./marketplace-server/target/marketplace-server-0.0.1-SNAPSHOT.jar
