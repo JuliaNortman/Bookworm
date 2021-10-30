@@ -92,7 +92,6 @@ public class UserRepositoryImpl implements UserRepository {
 	@Transactional
 	public User save(User user) {
 		KeyHolder credentialsHolder = new GeneratedKeyHolder();
-		System.out.println("Role id" + getRoleId(user.getRole()));
 		SqlParameterSource credentialsParameters = new MapSqlParameterSource()
 				.addValue("role_id", getRoleId(user.getRole()))
 				.addValue("email", user.getEmail())

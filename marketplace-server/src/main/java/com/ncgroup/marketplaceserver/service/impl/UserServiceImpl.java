@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -66,6 +67,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 	}
 
+    public User getCurrentUser() {
+	    String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return this.findUserByEmail(email);
+    }
+
 	
 
 	@Override
@@ -92,32 +98,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         
         log.info("New user registered");
         return UserDto.convertToDto(user);
-	}
-
-	@Override
-	public UserDto createManager(String name, String surname, String email, String password, String phone) {
-		validateNewEmail(StringUtils.EMPTY, email);
-		//validate password
-		if(!validatePasswordPattern(password)) {
-			throw new PasswordNotValidException(ExceptionMessage.PASSWORD_NOT_VALID);
-		}
-
-		User user = User.builder()
-				.name(name)
-				.surname(surname)
-				.phone(phone)
-				.email(email)
-				.password(encodePassword(password))
-				.lastFailedAuth(LocalDateTime.now())
-				.role(Role.ROLE_PRODUCT_MANAGER)
-				.build();
-
-		String authlink = emailSenderService.sendSimpleEmailValidate(email);
-		user.setAuthLink(authlink);
-		user = userRepository.save(user);
-
-		log.info("New user registered");
-		return UserDto.convertToDto(user);
 	}
 	
 	//Set user.enabled true after user has clicked the correct link sent by email
@@ -204,7 +184,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	 * Or in case of updating info about existing user, method returns user associated with given email
 	 * If currentEmail is Empty then this method is called from register() or addUser() method
 	 * */
-	public User validateNewEmail(String currentEmail, String newEmail) {
+	private User validateNewEmail(String currentEmail, String newEmail) {
         //Check that email matches RegExpr
 		/*if(!validateEmailPattern(newEmail)) {
 			throw new PasswordNotValidException(ExceptionMessage.EMAIL_NOT_VALID);
@@ -261,12 +241,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		return user;
 	}
 
-	public String encodePassword(String password) {
+	private String encodePassword(String password) {
 		return passwordEncoder.encode(password);
 	}
 
 	
-	public boolean validatePasswordPattern(String password) {
+	private boolean validatePasswordPattern(String password) {
 		int count = 0;
 
 		   if( 6 <= password.length() && password.length() <= 32  )
