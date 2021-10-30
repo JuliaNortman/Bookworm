@@ -1,9 +1,4 @@
--- DROP TABLE person;
--- DROP TABLE courier;
--- DROP TABLE credentials;
--- DROP TABLE role;
-
-CREATE TABLE IF NOT EXISTS role
+CREATE TABLE role
 (
   id   SERIAL NOT NULL
     CONSTRAINT pk_role_id
@@ -11,10 +6,20 @@ CREATE TABLE IF NOT EXISTS role
   role VARCHAR(50)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_role_role
+INSERT INTO role (role )
+VALUES
+		('ROLE_USER'),
+		('ROLE_ADMIN'),
+		('ROLE_COURIER'),
+		('ROLE_PRODUCT_MANAGER');
+
+ALTER TABLE role
+  OWNER TO ivan;
+
+CREATE UNIQUE INDEX ux_role_role
   ON role (role);
 
-CREATE TABLE IF NOT EXISTS credentials
+CREATE TABLE credentials
 (
   id               SERIAL      NOT NULL
     CONSTRAINT pk_credentials_id
@@ -31,11 +36,13 @@ CREATE TABLE IF NOT EXISTS credentials
   auth_link_date   TIMESTAMP
 );
 
+ALTER TABLE credentials
+  OWNER TO ivan;
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_credentials_email
+CREATE UNIQUE INDEX ux_credentials_email
   ON credentials (email);
 
-CREATE TABLE IF NOT EXISTS person
+CREATE TABLE person
 (
   id             SERIAL NOT NULL
     CONSTRAINT person_pk
@@ -48,7 +55,10 @@ CREATE TABLE IF NOT EXISTS person
   phone          VARCHAR(50)
 );
 
-CREATE TABLE IF NOT EXISTS courier
+ALTER TABLE person
+  OWNER TO ivan;
+
+CREATE TABLE courier
 (
   id        SERIAL NOT NULL
     CONSTRAINT courier_pk
@@ -58,3 +68,6 @@ CREATE TABLE IF NOT EXISTS courier
     REFERENCES person,
   is_active BOOLEAN
 );
+
+ALTER TABLE courier
+  OWNER TO ivan;

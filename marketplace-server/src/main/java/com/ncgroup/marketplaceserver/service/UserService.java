@@ -8,6 +8,7 @@ import com.ncgroup.marketplaceserver.model.dto.UserDto;
 
 public interface UserService {
 	UserDto register(String name, String surname, String email, String password, String phone);
+	UserDto createManager(String name, String surname, String email, String password, String phone);
 	UserDto enableUser(String link);
 	List<UserDto> getUsers();
     User findUserByEmail(String email);
@@ -17,4 +18,9 @@ public interface UserService {
     void deleteUser(long id);
     void resetPassword(String email);
     void setNewPassword(long id, String newPassword);
+
+    //validation
+    User validateNewEmail(String currentEmail, String newEmail);
+    boolean validatePasswordPattern(String password);
+    String encodePassword(String password);
 }
