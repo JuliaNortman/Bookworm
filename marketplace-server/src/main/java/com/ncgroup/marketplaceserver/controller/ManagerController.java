@@ -1,7 +1,6 @@
 package com.ncgroup.marketplaceserver.controller;
 
 import com.ncgroup.marketplaceserver.model.User;
-import com.ncgroup.marketplaceserver.model.dto.ManagerUpdateDto;
 import com.ncgroup.marketplaceserver.model.dto.UserDto;
 import com.ncgroup.marketplaceserver.service.ManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.OK;
 
@@ -45,10 +45,20 @@ public class ManagerController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<User> updateManager(
-            @Valid @RequestBody ManagerUpdateDto manager,
+            @Valid @RequestBody User manager,
             @PathVariable("id") long id
     ) {
         return new ResponseEntity<>(managerService.updateManager(id, manager), OK);
+    }
+
+    @GetMapping(params = {"filter", "search", "page"})
+    public ResponseEntity<Map<String, Object>> findByNameSurname(
+            @RequestParam("filter") final String filter,
+            @RequestParam("search") final String search,
+            @RequestParam(value = "page", defaultValue = "0") final int page
+    ) {
+
+        return new ResponseEntity<>(managerService.getByNameSurname(filter, search, page), OK);
     }
 
 }
