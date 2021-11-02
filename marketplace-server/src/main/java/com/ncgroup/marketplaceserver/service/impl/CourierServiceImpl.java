@@ -6,8 +6,10 @@ import java.util.List;
 
 import com.ncgroup.marketplaceserver.exception.constants.ExceptionMessage;
 import com.ncgroup.marketplaceserver.exception.domain.EmailExistException;
+import com.ncgroup.marketplaceserver.exception.domain.InvalidStatusException;
 import com.ncgroup.marketplaceserver.model.Courier;
 import com.ncgroup.marketplaceserver.model.dto.CourierDto;
+import com.ncgroup.marketplaceserver.model.dto.CourierUpdateDto;
 import com.ncgroup.marketplaceserver.repository.CourierRepository;
 import com.ncgroup.marketplaceserver.service.CourierService;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +27,7 @@ import com.ncgroup.marketplaceserver.service.UserService;
 import com.ncgroup.marketplaceserver.constants.StatusConstants;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -54,6 +57,7 @@ public class CourierServiceImpl implements CourierService {
     }
 
     @Override
+    @Transactional
     public UserDto save(String name, String surname, String email, String phone,
                         LocalDate birthday, String status) {
         userService.validateNewEmail(StringUtils.EMPTY, email);
@@ -71,7 +75,7 @@ public class CourierServiceImpl implements CourierService {
             else if (status.equals(StatusConstants.INACTIVE)){
                 isActive = false;
             }
-            else throw new EmailExistException(ExceptionMessage.INVALID_COURIER_STATUS);
+            else throw new InvalidStatusException(ExceptionMessage.INVALID_COURIER_STATUS);
         }
         Courier courier = Courier.builder()
                 .user(User.builder()
@@ -105,6 +109,13 @@ public class CourierServiceImpl implements CourierService {
     @Override
     public List<Courier> getAll() {
         return courierRepository.getAll();
+    }
+
+    @Override
+    public Courier updateCourier(int id, CourierUpdateDto courier) {
+        Courier currentCourier = this.getById(id);
+        courier.toDto(currentCourier);
+        return courierRepository.update(currentCourier, id);
     }
 
 
