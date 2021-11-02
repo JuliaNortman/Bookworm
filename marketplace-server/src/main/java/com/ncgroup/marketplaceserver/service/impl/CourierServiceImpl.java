@@ -164,15 +164,20 @@ public class CourierServiceImpl implements CourierService {
     @Override
     public Map<String, Object> getByNameSurname(String filter, String search, int page) {
         List<Courier> couriers = courierRepository.getByNameSurname(search);
-        List<User> couriersUsers = new LinkedList<>();
+        List<User> filtredCouriers = new LinkedList<>();
+
         int countPage = 0;
 
         for(int i = 0; i < couriers.size(); i++) {
             User userTemp = couriers.get(i).getUser();
             userTemp.setStatus(calculateStatus(userTemp.isEnabled(), couriers.get(i).isStatus()));
-
-            if(userTemp.getStatus().equals(filter)) {
-                couriersUsers.add(userTemp);
+            if(!"all".equals(filter)) {
+                if(userTemp.getStatus().equals(filter)) {
+                    filtredCouriers.add(userTemp);
+                    countPage++;
+                }
+            }else {
+                filtredCouriers.add(userTemp);
                 countPage++;
             }
         }
@@ -180,7 +185,7 @@ public class CourierServiceImpl implements CourierService {
         Map<String, Object> result = new HashMap<>();
         int allPages = countPage % 10 == 0 ? countPage / 10 : countPage / 10 + 1;
 
-        result.put("couriers", couriersUsers.stream().skip(page*10).limit(10));
+        result.put("couriers", filtredCouriers.stream().skip((page-1)*10).limit(10));
         result.put("currentPage", page);
         result.put("allPages", allPages);
 

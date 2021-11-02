@@ -23,6 +23,7 @@ import com.ncgroup.marketplaceserver.exception.domain.InvalidStatusException;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -108,31 +109,32 @@ public class ManagerServiceImpl implements ManagerService {
 
     @Override
     public Map<String, Object> getByNameSurname(String filter, String search, int page) {
-        List<User> managers = managerRepository.getByNameSurname(search);
-        List<User> managersFiltred = new LinkedList<>();
-        int countPage = 0;
+        List<User> managers = null;
+        int allPages = 0;
 
-        for(int i = 0; i < managers.size(); i++) {
-            User userTemp = managers.get(i);
-
-            if (userTemp.isEnabled()) {
-                userTemp.setStatus("active");
-            } else {
-                userTemp.setStatus("terminated");
-            }
-
-            if(userTemp.getStatus().equals(filter)) {
-                managersFiltred.add(userTemp);
-                countPage++;
-            }
+        switch(filter) {
+            case "active":
+                managers = managerRepository.getByNameSurname(search, true, (page-1)*10);
+                allPages = managerRepository.getNumberOfRows(search, true);
+                break;
+            case "terminated":
+                managers = managerRepository.getByNameSurname(search, false, (page-1)*10);
+                allPages = managerRepository.getNumberOfRows(search, false);
+                break;
+            case "all":
+                managers = managerRepository.getByNameSurnameAll(search, (page-1)*10);
+                allPages = managerRepository.getNumberOfRowsAll(search);
+                break;
+            default:
+                //TODO create exception for this error
+                log.info("Incorrect filer. Must be active, terminated or all");
         }
 
         Map<String, Object> result = new HashMap<>();
-        int allPages = countPage % 10 == 0 ? countPage / 10 : countPage / 10 + 1;
 
-        result.put("couriers", managersFiltred.stream().skip(page*10).limit(10));
+        result.put("users", managers);
         result.put("currentPage", page);
-        result.put("allPages", allPages);
+        result.put("pageNum", allPages % 10 == 0 ? allPages / 10 : allPages / 10 + 1);
 
         return result;
     }
