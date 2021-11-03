@@ -16,6 +16,7 @@ import com.ncgroup.marketplaceserver.shopping.cart.model.ShoppingCartItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -41,15 +42,20 @@ public class CourierRepositoryImpl implements CourierRepository {
     @Value("${courier.find-by-id}")
     private String selectById;
 
-    @Value("${courier.find-all}")
-    private String selectAll;
-
-
     @Value("${courier.update}")
     private String updateCourier;
 
     @Value("${courier.find-by-name-surname}")
     private String filterNameQuery;
+
+    @Value("${courier.find-by-name-surname-all}")
+    private String filterNameQueryAll;
+
+    @Value("${courier.number-of-rows}")
+    private String selectNumberOfRows;
+
+    @Value("${courier.number-of-rows-all}")
+    private String selectNumberOfRowsAll;
 
 
     @Autowired
@@ -76,11 +82,6 @@ public class CourierRepositoryImpl implements CourierRepository {
     }
 
     @Override
-    public List<Courier> getAll() {
-        return jdbcTemplate.query(selectAll, new CourierRowMapper());
-    }
-
-    @Override
     public CourierUpdateDto update(CourierUpdateDto courier, long id, boolean isEnabled, boolean isActive) {
         SqlParameterSource courierParams = new MapSqlParameterSource()
                 .addValue("name", courier.getName())
@@ -96,10 +97,37 @@ public class CourierRepositoryImpl implements CourierRepository {
     }
 
     @Override
-    public List<Courier> getByNameSurname(String search) {
+    public List<Courier> getByNameSurname(String search, boolean is_enabled, boolean is_active, int page) {
+        SqlParameterSource params = new MapSqlParameterSource()
+                .addValue("search", search)
+                .addValue("is_enabled", is_enabled)
+                .addValue("is_active", is_active)
+                .addValue("page", page);
+        return namedParameterJdbcTemplate.query(filterNameQuery, params, new CourierRowMapper());
+    }
+
+    @Override
+    public List<Courier> getByNameSurnameAll(String search, int page) {
+        SqlParameterSource params = new MapSqlParameterSource()
+                .addValue("search", search)
+                .addValue("page", page);
+        return namedParameterJdbcTemplate.query(filterNameQueryAll, params, new CourierRowMapper());
+    }
+
+    @Override
+    public int getNumberOfRows(String search, boolean is_enabled, boolean is_active) {
+        SqlParameterSource params = new MapSqlParameterSource()
+                .addValue("search", search)
+                .addValue("is_enabled", is_enabled)
+                .addValue("is_active", is_active);
+        return namedParameterJdbcTemplate.queryForObject(selectNumberOfRows, params, Integer.class);
+    }
+
+    @Override
+    public int getNumberOfRowsAll(String search) {
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("search", search);
-        return namedParameterJdbcTemplate.query(filterNameQuery, params, new CourierRowMapper());
+        return namedParameterJdbcTemplate.queryForObject(selectNumberOfRowsAll, params, Integer.class);
     }
 
 

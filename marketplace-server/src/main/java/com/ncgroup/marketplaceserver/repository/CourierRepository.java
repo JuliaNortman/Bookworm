@@ -14,11 +14,15 @@ public interface CourierRepository {
 
     Courier getByid(long id);
 
-    List<Courier> getAll();
-
     CourierUpdateDto update(CourierUpdateDto courier, long id, boolean isEnabled, boolean isActive);
 
-    List<Courier> getByNameSurname(String search);
+    List<Courier> getByNameSurname(String search, boolean is_enabled, boolean is_active, int page);
+
+    List<Courier> getByNameSurnameAll(String search, int page);
+
+    int getNumberOfRows(String search, boolean is_enabled, boolean is_active);
+
+    int getNumberOfRowsAll(String search);
 
 
 }
