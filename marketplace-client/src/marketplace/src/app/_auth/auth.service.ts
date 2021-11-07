@@ -33,4 +33,22 @@ export class AuthService {
     if (this.jwtHelper.isTokenExpired(token)) { localStorage.removeItem('token'); }
     return this.jwtHelper.isTokenExpired(token);
   }
+
+  public getRole(): string | null {
+    const token: string  | null = localStorage.getItem('token');
+    if (!token){
+      return null;
+    }
+    return decode<Token>(token).authorities[0];
+  }
+
+  public getMail(): string | null {
+    if (this.isAuthenticated()) {
+      const token: string = String(localStorage.getItem('token'));
+      if (!this.isExpired(token)) {
+        return jwtDecode<Token>(token).sub;
+      }
+    }
+    return null;
+  }
 }
