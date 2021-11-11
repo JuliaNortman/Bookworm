@@ -5,14 +5,13 @@
 
         <div class="col mb-3">
           <div class="e-panel card">
-            <div class="card-body">
-              <div class="e-table">
+
+              <div *ngIf="orderPage.orders" class="e-table">
                 <div class="table-responsive table-lg mt-3">
                   <table class="table table-bordered table-hover">
                     <thead>
                     <tr>
 
-                      <th class="max-width">Order Id</th>
                       <th class="max-width">Name</th>
                       <th class="max-width">Surname</th>
                       <th class="max-width">Address</th>
@@ -27,7 +26,6 @@
                     </thead>
                     <tbody>
                     <tr *ngFor="let order of orderPage.orders" routerLink = "{{order.id}}" class="pointer">
-                      <td class="text-nowrap align-middle">{{order.id}}</td>
                       <td class="text-nowrap align-middle">{{order.user?.name}}</td>
                       <td class="text-nowrap align-middle">{{order.user?.surname}}</td>
                       <td class="text-nowrap align-middle">{{order.address}}</td>
@@ -45,7 +43,10 @@
                 </div>
                 <app-pagination-order (notification)="orderPage = page.orderPage" #page></app-pagination-order>
               </div>
-            </div>
+
+          </div>
+          <div *ngIf="orderPage.orders?.length === 0" class="alert alert-primary mt-5 text-center" role="alert">
+            There are no orders for you
           </div>
         </div>
       </div>

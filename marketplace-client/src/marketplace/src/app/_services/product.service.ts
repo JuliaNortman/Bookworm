@@ -68,7 +68,7 @@ export class ProductService {
     return params;
   }
 
-  private addQueryParams(filter: Filter, search: string, page: number): string {
+  private addQueryParams(filter: Filter, search: string, page: number) {
     //filter = this.validateFilter(filter);
     let currentUrl = this.router.url.split('?')[0];
     if (!this.isBlank(search)) {
@@ -83,23 +83,8 @@ export class ProductService {
           page: page,
           search: search,
         },
+        replaceUrl: true,
       });
-      currentUrl =
-        currentUrl +
-        '?category=' +
-        filter.category +
-        '&minPrice=' +
-        filter.minPrice +
-        '&maxPrice=' +
-        filter.maxPrice +
-        '&sort=' +
-        filter.sort +
-        '&direction=' +
-        filter.direction +
-        '&page=' +
-        page +
-        '&search=' +
-        search;
     } else {
       this.router.navigate([currentUrl], {
         queryParams: {
@@ -111,22 +96,7 @@ export class ProductService {
           page: page,
         },
       });
-      currentUrl =
-        currentUrl +
-        '?category=' +
-        filter.category +
-        '&minPrice=' +
-        filter.minPrice +
-        '&maxPrice=' +
-        filter.maxPrice +
-        '&sort=' +
-        filter.sort +
-        '&direction=' +
-        filter.direction +
-        '&page=' +
-        page;
     }
-    return currentUrl;
   }
 
   getFilteredProducts(filter: Filter, init: boolean): Observable<ProductDto> {
@@ -175,19 +145,17 @@ export class ProductService {
     return this.http.get<string[]>(`${baseUrl}/products/categories`);
   }
 
+  getPriceRange(category: string): Observable<number[]> {
+    return this.http.get<number[]>(
+      `${baseUrl}/products/price-range/` + category
+    );
+  }
+
   getFirm(): Observable<string[]> {
     return this.http.get<string[]>(`${baseUrl}/products/firms`);
   }
 
   getFilter(): Filter {
-    const MAX_RPICE = 400;
-    const MIN_PRICE = 0;
-    let maxPrice = Number(
-      this.activatedRoute.snapshot.queryParamMap.get('maxPrice') || MAX_RPICE
-    );
-    if (maxPrice > MAX_RPICE || maxPrice < MIN_PRICE + 1) {
-      maxPrice = MAX_RPICE;
-    }
     return new Filter(
       this.activatedRoute.snapshot.queryParamMap.get('category') || 'all',
       this.validateMinPrice(),
@@ -204,7 +172,6 @@ export class ProductService {
     if (maxPrice > MAX_PRICE || maxPrice < MIN_PRICE + 1) {
       maxPrice = MAX_PRICE;
     }
-    console.log(maxPrice);
     return maxPrice;
   }
 
@@ -230,15 +197,15 @@ export class ProductService {
     return !str || /^\s*$/.test(str);
   }
 
-  AddProduct(account: Product): Observable<any> {
-    return this.http.post(`${baseUrl}/products`, account);
+  AddProduct(product: Product): Observable<Product> {
+    return this.http.post<Product>(`${baseUrl}/products`, product);
   }
 
   getProductInfo(id: number) {
     return this.http.get(`${baseUrl}/products/` + id);
   }
 
-  updateProduct(account: Product, id: number): Observable<any> {
-    return this.http.put(`${baseUrl}/products/` + id, account);
+  updateProduct(product: Product, id: number): Observable<Product> {
+    return this.http.put<Product>(`${baseUrl}/products/` + id, product);
   }
 }

@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  SimpleChange,
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Filter } from 'src/app/_models/products/filter';
 import { Product } from 'src/app/_models/products/product';
@@ -18,38 +26,45 @@ export class FilterComponent implements OnInit {
   products: Product[] = [];
   subscription!: Subscription;
   categorySubscription!: Subscription;
+  rangeSubscription!: Subscription;
   minPrice: number = 0;
   maxPrice: number = 99999;
+  init: boolean = false;
   options: Options = {
     floor: 0,
-    ceil: 400,
+    ceil: 99999,
     showTicks: false,
   };
   @Input() sort: string = 'name';
+  @Output() sortChange = new EventEmitter<string>();
   @Input() direction: string = 'ASC';
+  @Output() directionChange = new EventEmitter<string>();
   @Output() results: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(private service: ProductService) {}
 
   ngOnInit(): void {
+    this.init = true;
     this.getCategories();
     this.filters = this.getFilter();
-    this.filters.sort = this.sort;
-    this.filters.direction = this.direction;
-    //this.maxPrice = this.filters.maxPrice;
-    //this.minPrice = this.filters.minPrice;
-    this.filters.maxPrice = this.maxPrice;
-    this.filters.minPrice = this.minPrice;
+    this.sort = this.filters.sort;
+    this.direction = this.filters.direction;
+    this.sortChange.emit(this.sort);
+    this.directionChange.emit(this.direction);
+    this.minPrice = this.filters.minPrice;
+    this.maxPrice = this.filters.maxPrice;
+    this.getPriceRange();
     this.filter(this.filters, true);
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
     this.categorySubscription.unsubscribe();
+    this.rangeSubscription.unsubscribe();
   }
 
-  ngOnChanges(): void {
-    if (this.filters) {
+  ngOnChanges(changes: { [property: string]: SimpleChange }) {
+    if (this.init) {
       this.filters.sort = this.sort;
       this.filters.direction = this.direction;
       this.filter(this.filters, false);
@@ -60,26 +75,16 @@ export class FilterComponent implements OnInit {
     this.subscription = this.service
       .getFilteredProducts(filter, init)
       .subscribe((results: ProductDto) => {
-        this.products = results.result_set;
-        if (category || init) {
-          const maxPrice = this.getMaxPrice();
-          this.options = {
-            floor: 0,
-            ceil: maxPrice,
-            showTicks: false,
-          };
-          this.minPrice = 0;
-          this.maxPrice = maxPrice;
+        if (category) {
+          this.getPriceRange();
         }
+        this.products = results.result_set;
         this.results.emit();
       });
   }
 
   chooseCategory(category: string) {
-    console.log(category);
     this.filters.category = category;
-    this.filters.maxPrice = 99999;
-    this.filters.minPrice = 0;
     this.filter(this.filters, false, true);
   }
 
@@ -102,11 +107,23 @@ export class FilterComponent implements OnInit {
       });
   }
 
+  private getPriceRange() {
+    this.rangeSubscription = this.service
+      .getPriceRange(this.filters.category)
+      .subscribe((results: number[]) => {
+        this.options = {
+          floor: Math.floor(results[0]),
+          ceil: Math.ceil(results[1]),
+          showTicks: false,
+        };
+      });
+  }
+
   getProducts(): Product[] {
     return this.products;
   }
 
-  isPriceAsc(): boolean {
+  /*isPriceAsc(): boolean {
     return this.filters.sort === 'price' && this.filters.direction === 'ASC';
   }
 
@@ -120,14 +137,5 @@ export class FilterComponent implements OnInit {
 
   isNameDesc(): boolean {
     return this.filters.sort === 'name' && this.filters.direction === 'DESC';
-  }
-
-  getMaxPrice(): number {
-    return Math.max.apply(
-      Math,
-      this.products.map(function (product) {
-        return product.price;
-      })
-    );
-  }
+  }*/
 }

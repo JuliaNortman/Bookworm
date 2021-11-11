@@ -1,31 +1,40 @@
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {ProductService} from "../../_services/product.service";
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
+import { ProductService } from '../../_services/product.service';
 import { Product } from '../../_models/products/product';
 
-import {first} from "rxjs/operators";
-import {Observable, Subscription} from "rxjs";
+import { first } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { AlertType } from '../../_models/alert';
+import { AlertService } from '../../_services/alert.service';
 
 @Component({
   selector: 'update-product',
   templateUrl: './update-product.component.html',
   styleUrls: ['./update-product.component.css'],
 })
-export class UpdateProductComponent implements OnInit{
-
-
-  //form: FormGroup;
+export class UpdateProductComponent implements OnInit {
   form = new FormGroup({
-    name: new FormControl('')
+    name: new FormControl(''),
   });
 
   subscriptions: Subscription = new Subscription();
 
-  categoryName: string[]= [""];
-  firmName: string[]=[""];
-  unit: string[] = ["KILOGRAM", "ITEM", "LITRE"];
-  status: string[] = ["true", "false"];
+  categoryName: string[] = [''];
+  firmName: string[] = [''];
+  unit: string[] = ['KILOGRAM', 'ITEM', 'LITRE'];
+  id: number = -1;
+
+  goodName: string | null = null;
+  status: string[] = ['true', 'false'];
 
   submitted = false;
   loading = false;
@@ -36,60 +45,70 @@ export class UpdateProductComponent implements OnInit{
   responseFirm: any;
   image: string = '';
 
-  ngOnInit(){
-    this.subscriptions.add(this.accountService.getProductInfo(this.route.snapshot.params.id)
-      .subscribe((response) => {
-        this.response = response;
-        this.formCreation();
-        this.firm()
-        this.category();
-      }));
+  ngOnInit() {
+    this.subscriptions.add(
+      this.accountService
+        .getProductInfo(this.route.snapshot.params.id)
+        .subscribe((response) => {
+          this.response = response;
+          this.formCreation();
+          this.firm();
+          this.category();
+        })
+    );
   }
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 
-  public setImage(imageName: string){
+  public setImage(imageName: string) {
     this.image = imageName;
   }
 
-  private category(){
-    this.subscriptions.add( this.accountService.getCategories()
-      .subscribe((categ) =>{
+  private category() {
+    this.subscriptions.add(
+      this.accountService.getCategories().subscribe((categ) => {
         this.responseCategory = categ;
         this.categoryName = this.responseCategory;
-      }));
+      })
+    );
   }
 
-  private firm(){
-    this.subscriptions.add( this.accountService.getFirm()
-      .subscribe((firm) =>{
+  private firm() {
+    this.subscriptions.add(
+      this.accountService.getFirm().subscribe((firm) => {
         this.responseFirm = firm;
         this.firmName = this.responseFirm;
-      }));
+      })
+    );
   }
 
   constructor(
     private formBuilder: FormBuilder,
     private accountService: ProductService,
     private route: ActivatedRoute,
+    private router: Router,
+    private alertService: AlertService
   ) {}
 
-  formCreation(){
-    this.form = this.formBuilder.group(
-      {
-        goodName: [this.response.goodName, Validators.required],
-        firmName: [this.response.firmName, Validators.required],
-        quantity: [this.response.quantity, [Validators.min(1), Validators.required]],
-        price: [this.response.price, [Validators.min(1), Validators.required]],
-        unit: [this.response.unit, Validators.required],
-        discount: [this.response.discount, [Validators.min(1), Validators.required]],
-        inStock: [String(this.response.inStock), Validators.required],
-        status: [String(this.response.status), Validators.required],
-        categoryName: [this.response.categoryName, Validators.required],
-        description: [this.response.description, Validators.required],
-      },
-    );
+  formCreation() {
+    this.goodName = this.response.goodName;
+    this.id = this.response.id;
+    this.form = this.formBuilder.group({
+      goodName: [this.response.goodName, Validators.required],
+      firmName: [this.response.firmName, Validators.required],
+      quantity: [
+        this.response.quantity,
+        [Validators.min(1), Validators.required],
+      ],
+      price: [this.response.price, [Validators.min(1), Validators.required]],
+      unit: [this.response.unit, Validators.required],
+      discount: [this.response.discount, Validators.min(0)],
+      inStock: [String(this.response.inStock), Validators.required],
+      status: [String(this.response.status), Validators.required],
+      categoryName: [this.response.categoryName, Validators.required],
+      description: [this.response.description, Validators.required],
+    });
   }
 
   get getForm(): { [p: string]: AbstractControl } {
@@ -119,22 +138,30 @@ export class UpdateProductComponent implements OnInit{
     if (this.form.invalid) {
       return;
     }
+    this.form.disable();
     this.loading = true;
     let observable = null;
 
     let product = this.mapToProduct(this.form.value);
     product.image = this.image;
     observable = this.accountService.updateProduct(
-      product, (this.route.snapshot.params.id)
+      product,
+      this.route.snapshot.params.id
     );
 
     observable.pipe(first()).subscribe({
-      next: () => {
+      next: (res) => {
         this.loading = false;
         this.updated = true;
+        this.router.navigateByUrl('/products/' + res.id);
+        this.alertService.addAlert(
+          'Product was successfully updated!',
+          AlertType.Success
+        );
+      },
+      error: (err) => {
+        this.form.enable();
       },
     });
   }
-
-
 }
