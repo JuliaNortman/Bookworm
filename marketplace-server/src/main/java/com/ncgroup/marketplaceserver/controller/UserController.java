@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,6 +79,9 @@ public class UserController  {
     public ResponseEntity<UserDto> login(@Valid @RequestBody LoginUserDto user,
     		@RequestHeader("captcha-response") String captchaResponse) {
         User loginUser = userService.findUserByEmail(user.getEmail());
+        if(loginUser==null){
+            throw new BadCredentialsException("Bad credentials");
+        }
         if(loginAttemptService.hasExceededMaxAttempts(loginUser.getId()) && !captchaService.validateCaptcha(captchaResponse)){
             throw new CaptchaNotValidException("Captcha is not valid");
         }
@@ -117,18 +121,6 @@ public class UserController  {
         return ResponseEntity.noContent().build();
     }
     
-/*    @GetMapping("/confirm-passreset")
-    public void confirmPassReset(@RequestParam(name = "token") String link, HttpServletResponse response) throws IOException {
-    	User user = userService.getUserByLink(link);
-    	if(user != null) {
-        	response.setStatus(HttpStatus.OK.value());
-        	response.sendRedirect(redirectResetPasswordUrl+"?id="+link);
-        } else {
-        	response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        	response.sendRedirect(redirectResetPasswordUrl);
-        }
-    }*/
-    
     
     @PostMapping("/setnewpassword")
     public ResponseEntity<UserDto> setNewPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
@@ -145,9 +137,9 @@ public class UserController  {
     }
 
     @PatchMapping("/updateUserRole")
-    public ResponseEntity<User> updateRoleUser(
+    public ResponseEntity<UserDto> updateRoleUser(
             @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody User user
+            @Valid @RequestBody UserDto user
     ) {
         return new ResponseEntity<>(userService.updateRoleUser(user, token), OK);
     }

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.ncgroup.marketplaceserver.captcha.service.CaptchaService;
 import com.ncgroup.marketplaceserver.constants.EmailParam;
+import com.ncgroup.marketplaceserver.exception.domain.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,13 +18,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ncgroup.marketplaceserver.exception.constants.ExceptionMessage;
-import com.ncgroup.marketplaceserver.exception.domain.CaptchaNotValidException;
-import com.ncgroup.marketplaceserver.exception.domain.EmailExistException;
-import com.ncgroup.marketplaceserver.exception.domain.EmailNotFoundException;
-import com.ncgroup.marketplaceserver.exception.domain.PasswordNotValidException;
-import com.ncgroup.marketplaceserver.exception.domain.UserNotFoundException;
 import com.ncgroup.marketplaceserver.model.Role;
 import com.ncgroup.marketplaceserver.model.User;
 import com.ncgroup.marketplaceserver.model.dto.UserDto;
@@ -87,11 +84,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
 	@Override
-	public User updateRoleUser(User user, String token) {
-		if(token == null) return null;
-		token = token.split(" ")[1];
-		String email = jwtProvider.getSubject(token);
-		userRepository.updateUserByEmail(user, email);
+	public UserDto updateRoleUser(UserDto user, String token) {
+		userRepository.updateUserByEmail(user, user.getEmail());
 		return user;
 	}
 
@@ -145,14 +139,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 	
 	@Override
+	@Transactional
 	public User setNewPassword(String link, String newPassword) {
 		User user = validateAuthLink(link);
 		validatePasswordPattern(newPassword);
-		if(user == null || newPassword == null) return null;
-		if(user.getPassword() != null && user.getPassword().equals(newPassword)) {
+		if(user == null){
+			throw new LinkNotValidException("Link is invalid or expired");
+		}
+		if(user.getPassword() != null && passwordEncoder.matches(newPassword, user.getPassword())) {
 			throw new PasswordNotValidException(ExceptionMessage.SAME_PASSWORD);
 		}
 		userRepository.updatePassword(user.getEmail(), encodePassword(newPassword));
+		userRepository.updateAuthLink(user.getEmail(), null);
 		return user;
 	}
 	
@@ -290,9 +288,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		return user;
 	}
 
+	@Override
 	public String encodePassword(String password) {
 		return passwordEncoder.encode(password);
 	}
+	
 
 	
 	public boolean validatePasswordPattern(String password) {
