@@ -31,7 +31,7 @@ export class AddProductComponent implements OnInit {
   d = Date().toLocaleString();
 
   submitted = false;
-  unit: string[] = ['KILOGRAM', 'ITEM', 'LITRE'];
+  unit: string[] = ['ITEM'];
   firmName: string[] = [''];
   categoryName: string[] = [''];
 
@@ -57,7 +57,7 @@ export class AddProductComponent implements OnInit {
         firmName: ['', [Validators.required, Validators.maxLength(50)]],
         quantity: ['', [Validators.min(0.001), Validators.required]],
         price: ['', [Validators.min(0.01), Validators.required]],
-        unit: ['', Validators.required],
+        unit: ['ITEM', Validators.required],
         discount: ['', [Validators.min(0), Validators.max(99)]],
         inStock: ['', Validators.required],
         shippingDate: ['', Validators.required],
@@ -111,7 +111,7 @@ export class AddProductComponent implements OnInit {
       firmName: o.firmName,
       quantity: o.quantity,
       price: o.price,
-      unit: o.unit,
+      unit: 'ITEM',
       image: o.image,
       discount: o.discount,
       inStock: o.inStock,

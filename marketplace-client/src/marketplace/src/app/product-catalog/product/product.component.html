@@ -7,7 +7,7 @@
             <a *ngIf="role=='ROLE_ADMIN' || role=='ROLE_PRODUCT_MANAGER'" routerLink="/products/update/{{product.id}}" class="btn btn-default btn-edit ml-auto px-4 mb-4 d-flex d-md-none">Edit</a>
             <img *ngIf="product.discount!=0 && (role=='ROLE_USER' || !role)" src="assets/sale.svg" class="sale-icon">
             <img *ngIf="product.image" class="card-img col-12 col-md-4 mr-5" src="{{product.image}}"
-                 alt="Product">
+                 alt="Book">
             <img *ngIf="!product.image" src="assets/product.svg" class="col-12 col-md-4 mr-5">
             <div class="col d-row-flex">
               <div class="control row d-none d-md-flex">

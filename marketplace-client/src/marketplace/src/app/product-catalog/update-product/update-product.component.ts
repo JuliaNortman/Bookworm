@@ -32,7 +32,7 @@ export class UpdateProductComponent implements OnInit {
 
   categoryName: string[] = [''];
   firmName: string[] = [''];
-  unit: string[] = ['KILOGRAM', 'ITEM', 'LITRE'];
+  unit: string[] = ['ITEM'];
   id: number = -1;
 
   goodName: string | null = null;

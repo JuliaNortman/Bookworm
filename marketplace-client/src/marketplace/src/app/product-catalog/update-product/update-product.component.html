@@ -10,15 +10,15 @@
               <form *ngIf="response" [formGroup]="form" (ngSubmit)="onSubmit()">
                 <div class="form-row">
                   <div class="form-group col-6">
-                    <label>Product Name*</label>
+                    <label>Book Name*</label>
                     <input type="text" formControlName="goodName" class="form-control"
                       [ngClass]="{ 'is-invalid': submitted && getForm.goodName.errors }" />
                     <div *ngIf="submitted && getForm.goodName.errors" class="invalid-feedback">
-                      <div *ngIf="getForm.goodName.errors.required">Good name is required</div>
+                      <div *ngIf="getForm.goodName.errors.required">Book name is required</div>
                     </div>
                   </div>
                   <div class="form-group col-6">
-                    <label>Producer Name<span>*</span></label>
+                    <label>Author<span>*</span></label>
                     <input type="text" list="firms" class="form-control" formControlName="firmName"
                       [ngClass]="{ 'is-invalid': submitted && getForm.firmName.errors }" />
                     <datalist id="firms">
@@ -29,7 +29,7 @@
                       </ng-container>
                     </datalist>
                     <div *ngIf="submitted && getForm.firmName.errors" class="invalid-feedback">
-                      <div *ngIf="getForm.firmName.errors.required">Firm name is required</div>
+                      <div *ngIf="getForm.firmName.errors.required">Author is required</div>
                     </div>
                   </div>
 
@@ -49,7 +49,7 @@
                     </div>
                   </div>
 
-                  <div class="form-group col-6">
+                  <div class="form-group col-6" style="display: none;">
                     <label>Unit<span>*</span></label>
                     <select class="form-control" formControlName="unit">
                       <ng-container *ngIf="response">
