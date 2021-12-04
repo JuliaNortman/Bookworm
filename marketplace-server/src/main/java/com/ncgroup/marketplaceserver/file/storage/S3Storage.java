@@ -3,6 +3,7 @@ package com.ncgroup.marketplaceserver.file.storage;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -58,10 +59,15 @@ public class S3Storage implements CloudStorage {
     public void copy(String filepathFrom, String filepathTo) {
         try {
             amazonS3.copyObject(
-                    bucketName,
+                    new CopyObjectRequest( bucketName,
+                            filepathFrom,
+                            bucketName,
+                            filepathTo)
+                            .withCannedAccessControlList(CannedAccessControlList.PublicRead)
+                    /*bucketName,
                     filepathFrom,
                     bucketName,
-                    filepathTo
+                    filepathTo*/
             );
         } catch (AmazonServiceException e) {
             throw new IllegalStateException("Failed to move the file", e);
