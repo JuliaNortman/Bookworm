@@ -3,6 +3,7 @@ package com.ncgroup.marketplaceserver.file.storage;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class S3Storage implements CloudStorage {
 
     @Value("${aws.bucket.name}")
@@ -27,11 +29,11 @@ public class S3Storage implements CloudStorage {
     }
 
     @Override
-    public void upload(String filepath, InputStream is, Map<String,String> metadata) {
+    public void upload(String filepath, InputStream is, Map<String, String> metadata) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
-            metadata.forEach(objectMetadata::addUserMetadata);
+        metadata.forEach(objectMetadata::addUserMetadata);
         try {
-            amazonS3.putObject(bucketName, filepath, is,objectMetadata);
+            amazonS3.putObject(bucketName, filepath, is, objectMetadata);
         } catch (AmazonServiceException e) {
             throw new IllegalStateException("Failed to upload the file", e);
         }
@@ -63,9 +65,10 @@ public class S3Storage implements CloudStorage {
 
     @Override
     public String getResourceUrl(String filepath) {
-        if(filepath==null||filepath.isEmpty()){
+        if (filepath == null || filepath.isEmpty()) {
             return "";
         }
-        return String.format("https://%s.s3.%s.amazonaws.com/%s",bucketName,bucketRegion,filepath);
+        log.info("Resource url: " + String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, bucketRegion, filepath));
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, bucketRegion, filepath);
     }
 }

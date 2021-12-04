@@ -1,14 +1,11 @@
-
 language: java
 deploy:
   provider: heroku
   api-key: $HEROKU_API_KEY
-  app: bookworm-marketplace
+  app: bookworm-library
 before_install:
   - chmod +x mvnw
-notifications:
-  slack: nc-aof7593:WkeDRLH5jZfuLgskTGoTeAtW
 branches:
   only:
+    - test/test-deploy
     - master
-    - develop

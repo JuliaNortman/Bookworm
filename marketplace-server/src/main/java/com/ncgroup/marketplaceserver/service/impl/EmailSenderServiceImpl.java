@@ -1,8 +1,8 @@
 package com.ncgroup.marketplaceserver.service.impl;
 
-import java.util.UUID;
+import javax.mail.MessagingException;
 
-import com.ncgroup.marketplaceserver.constants.EmailParam;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,14 +11,13 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-
+import com.ncgroup.marketplaceserver.constants.EmailParam;
 import com.ncgroup.marketplaceserver.constants.MailConstants;
 import com.ncgroup.marketplaceserver.service.EmailSenderService;
 
-import javax.mail.MessagingException;
-
 
 @Service
+@Slf4j
 public class EmailSenderServiceImpl implements EmailSenderService {
 
     @Value("${url.confirm-account}")
@@ -49,6 +48,7 @@ public class EmailSenderServiceImpl implements EmailSenderService {
 
         emailParam.setMess(String.format(MailConstants.REGISTRATION_MESSAGE));
         emailParam.setLink(String.format(confirmAccountUrl, emailParam.getToken()));
+        log.info(emailParam.getLink());
         emailParam.setName(name);
 
         Context context = new Context();
@@ -96,7 +96,7 @@ public class EmailSenderServiceImpl implements EmailSenderService {
         message.setTo(toEmail);
         //String generatedToken = generateToken();
 
-       // message.setText(String.format(MailConstants.PASSWORD_CREATION_MESSAGE + createPasswordUrl, generatedToken));
+        // message.setText(String.format(MailConstants.PASSWORD_CREATION_MESSAGE + createPasswordUrl, generatedToken));
         message.setSubject(MailConstants.PASSWORD_CREATION_SUBJECT);
 
         emailParam.setMess(String.format(MailConstants.PASSWORD_CREATION_MESSAGE));
@@ -112,9 +112,6 @@ public class EmailSenderServiceImpl implements EmailSenderService {
         return emailParam.getToken();
 
 
-    }
-    private String generateToken(){
-        return UUID.randomUUID().toString();
     }
 
 
