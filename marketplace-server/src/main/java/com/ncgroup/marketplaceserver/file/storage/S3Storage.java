@@ -2,7 +2,9 @@ package com.ncgroup.marketplaceserver.file.storage;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +35,10 @@ public class S3Storage implements CloudStorage {
         ObjectMetadata objectMetadata = new ObjectMetadata();
         metadata.forEach(objectMetadata::addUserMetadata);
         try {
-            amazonS3.putObject(bucketName, filepath, is, objectMetadata);
+            amazonS3.putObject(new PutObjectRequest( bucketName, filepath, is, objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+            //amazonS3.putObject(bucketName, filepath, is, objectMetadata);
+            //s3client.putObject(new PutObjectRequest(bucketName, keyName, file).withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (AmazonServiceException e) {
             throw new IllegalStateException("Failed to upload the file", e);
         }
